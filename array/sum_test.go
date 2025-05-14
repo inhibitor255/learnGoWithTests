@@ -61,12 +61,12 @@ func ExampleSumAll() {
 	Result := SumAll([]int{1, 3, 4}, []int{3, 4})
 	fmt.Println(Result)
 
-	// Output: [8, 7]
+	// Output: [8 7]
 }
 
 func ExampleSumAllTail() {
 	Result := SumAllTail([]int{2, 3, 5}, []int{4, 6, 2, 2})
 	fmt.Println(Result)
 
-	// Output: [8, 10]
+	// Output: [8 10]
 }
