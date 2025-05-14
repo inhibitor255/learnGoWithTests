@@ -1,6 +1,7 @@
-package main
+package array
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -47,4 +48,25 @@ func checkSums(t *testing.T, got, want []int) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("want %v but got %v", want, got)
 	}
+}
+
+func ExampleSum() {
+	Sumed := Sum([]int{2, 4})
+	fmt.Println(Sumed)
+
+	// Output: 6
+}
+
+func ExampleSumAll() {
+	Result := SumAll([]int{1, 3, 4}, []int{3, 4})
+	fmt.Println(Result)
+
+	// Output: [8, 7]
+}
+
+func ExampleSumAllTail() {
+	Result := SumAllTail([]int{2, 3, 5}, []int{4, 6, 2, 2})
+	fmt.Println(Result)
+
+	// Output: [8, 10]
 }
