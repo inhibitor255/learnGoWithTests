@@ -1,6 +1,9 @@
 package maps
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestSearch(t *testing.T) {
 	dictionary := Dictionary{"test": "this is just a test"}
@@ -120,4 +123,49 @@ func assertDefinition(t testing.TB, dictionary Dictionary, word, definition stri
 		t.Fatal("should find added word:", err)
 	}
 	assertStrings(t, got, definition)
+}
+
+func ExampleDictionary_Search() {
+	dictionary := Dictionary{"test": "this is a test"}
+	result, _ := dictionary.Search("test")
+	fmt.Println(result)
+
+	// Output: this is a test
+}
+
+func ExampleDictionary_Add() {
+	dictionary := Dictionary{}
+
+	word := "test"
+	definition := "this is a test"
+
+	dictionary.Add(word, definition)
+
+	result, _ := dictionary.Search(word)
+
+	fmt.Println(result)
+	// Output: this is a test
+}
+
+func ExampleDictionary_Update() {
+	dictionary := Dictionary{"go": "a programming language"}
+	newDef := "an awesome open-source language"
+
+	_ = dictionary.Update("go", newDef)
+
+	result, _ := dictionary.Search("go")
+	fmt.Println(result)
+
+	// Output: an awesome open-source language
+}
+
+func ExampleDictionary_Delete() {
+	dictionary := Dictionary{"go": "a programming language"}
+
+	_ = dictionary.Delete("go")
+
+	_, err := dictionary.Search("go")
+	fmt.Println(err)
+
+	// Output: could not find the word you were looking for
 }
