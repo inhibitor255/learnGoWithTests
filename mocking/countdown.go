@@ -19,8 +19,12 @@ func (s *SpySleeper) Sleep() {
 	s.Calls++
 }
 
-const finalWord = "Go!"
-const countdownStart = 3
+const (
+	finalWord      = "Go!"
+	countdownStart = 3
+	sleep          = "sleep"
+	write          = "write"
+)
 
 func Countdown(out io.Writer, sleeper Sleeper) {
 	for i := countdownStart; i > 0; i-- {
@@ -28,6 +32,19 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 		sleeper.Sleep()
 	}
 	fmt.Fprint(out, finalWord)
+}
+
+type SpyCountdownOperations struct {
+	Calls []string
+}
+
+func (s *SpyCountdownOperations) Sleep() {
+	s.Calls = append(s.Calls, sleep)
+}
+
+func (s *SpyCountdownOperations) Write(p []byte) (n int, err error) {
+	s.Calls = append(s.Calls, write)
+	return
 }
 
 type DefaultSleeper struct {
