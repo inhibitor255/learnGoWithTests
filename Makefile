@@ -6,6 +6,6 @@ test:
 
 bench:
 	@echo "🧪 Running tests and benchmarks..."
-	@go test -bench=. ./... || (echo "❌ Some tests failed. Check above 👆" && exit 1)
+	@go test -bench=. -benchmem ./... || (echo "❌ Some tests failed. Check above 👆" && exit 1)
 
 all: hello test
