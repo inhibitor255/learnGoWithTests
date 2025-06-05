@@ -1,9 +1,12 @@
 package main
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 type RomanNumeral struct {
-	Value  int
+	Value  uint16
 	Symbol string
 }
 
@@ -23,7 +26,12 @@ var allRomanNumerals = []RomanNumeral{
 	{1, "I"},
 }
 
-func ConvertToRoman(arabic int) string {
+var ErrOutOfRange = errors.New("cannot convert, Must be between 1 and 3999")
+
+func ConvertToRoman(arabic uint16) (string, error) {
+	if arabic > 3999 || arabic < 1 {
+		return "", ErrOutOfRange
+	}
 
 	var result strings.Builder
 	for _, numeral := range allRomanNumerals {
@@ -32,12 +40,12 @@ func ConvertToRoman(arabic int) string {
 			arabic -= numeral.Value
 		}
 	}
-	return result.String()
+	return result.String(), nil
 }
 
-func ConvertToArabic(roman string) int {
+func ConvertToArabic(roman string) uint16 {
 
-	var arabic = 0
+	var arabic uint16
 
 	for _, numeral := range allRomanNumerals {
 		for strings.HasPrefix(roman, numeral.Symbol) {

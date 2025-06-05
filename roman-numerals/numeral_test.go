@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"testing"
+	"testing/quick"
 )
 
 var cases = []struct {
-	Arabic int
+	Arabic uint16
 	Roman  string
 }{
 	{Arabic: 1, Roman: "I"},
@@ -42,18 +43,33 @@ var cases = []struct {
 
 func TestRomanNumerals(t *testing.T) {
 
-	for _, test := range cases {
-		t.Run(fmt.Sprintf("%d gets converted to %q", test.Arabic, test.Roman), func(t *testing.T) {
-			got := ConvertToRoman(test.Arabic)
-			if got != test.Roman {
-				t.Errorf("got %q, want %q", got, test.Roman)
-			}
-		})
-	}
+	t.Run("various cases", func(t *testing.T) {
+		for _, test := range cases {
+			t.Run(fmt.Sprintf("%d gets converted to %q", test.Arabic, test.Roman), func(t *testing.T) {
+				got, _ := ConvertToRoman(test.Arabic)
+				if got != test.Roman {
+					t.Errorf("got %q, want %q", got, test.Roman)
+				}
+			})
+		}
+	})
+
+	t.Run("with number greater than 3999", func(t *testing.T) {
+		_, err := ConvertToRoman(10000)
+		want := ErrOutOfRange
+		if err == nil {
+			t.Fatal("want err but get none")
+		}
+
+		if err != want {
+			t.Errorf("err %q, want %q", err, want)
+		}
+
+	})
 
 }
 
-func Test(t *testing.T) {
+func TestConvertToArabic(t *testing.T) {
 	for _, test := range cases {
 		t.Run(fmt.Sprintf("%q gets converted to %d", test.Roman, test.Arabic), func(t *testing.T) {
 			got := ConvertToArabic(test.Roman)
@@ -64,11 +80,81 @@ func Test(t *testing.T) {
 	}
 }
 
+func TestPropertiesOfRoman_Numerals(t *testing.T) {
+	t.Run("Conversion is reversible", func(t *testing.T) {
+		assertion := func(arabic uint16) bool {
+			if arabic > 3999 {
+				return true // skip values out of range
+			}
+			roman, _ := ConvertToRoman(arabic)
+			fromRoman := ConvertToArabic(roman)
+			return fromRoman == arabic
+		}
+
+		if err := quick.Check(assertion, &quick.Config{MaxCount: 1000}); err != nil {
+			t.Error("failed checks", err)
+		}
+	})
+
+	t.Run("Only I, X, and C can be subtractors", func(t *testing.T) {
+		assertion := func(arabic uint16) bool {
+			if arabic > 3999 {
+				return true
+			}
+			roman, _ := ConvertToRoman(arabic)
+
+			// Look for any subtractive pair (e.g. IV, XL, etc.)
+			for i := 0; i < len(roman)-1; i++ {
+				curr := roman[i]
+				next := roman[i+1]
+
+				if valueOf(curr) < valueOf(next) {
+					// This is a subtraction (e.g. I before V, etc.)
+					if curr != 'I' && curr != 'X' && curr != 'C' {
+						return false // invalid subtractor
+					}
+				}
+			}
+			return true
+		}
+
+		if err := quick.Check(assertion, &quick.Config{MaxCount: 1000}); err != nil {
+			t.Error("Invalid subtractor found", err)
+		}
+	})
+
+	t.Run("Can't have more than 3 of the same symbol in a row", func(t *testing.T) {
+		assertion := func(arabic uint16) bool {
+			if arabic > 3999 {
+				return true
+			}
+			roman, _ := ConvertToRoman(arabic)
+
+			count := 1
+			for i := 1; i < len(roman); i++ {
+				if roman[i] == roman[i-1] {
+					count++
+					if count > 3 {
+						return false
+					}
+				} else {
+					count = 1
+				}
+			}
+			return true
+		}
+
+		if err := quick.Check(assertion, &quick.Config{MaxCount: 1000}); err != nil {
+			t.Error("More than 3 consecutive symbols found", err)
+		}
+	})
+}
+
 func BenchmarkConvertToRoman(b *testing.B) {
 	for _, test := range cases {
 		b.Run(fmt.Sprintf("%d", test.Arabic), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_ = ConvertToRoman(test.Arabic)
+				_, _ = ConvertToRoman(test.Arabic)
 			}
 		})
 	}
@@ -83,5 +169,26 @@ func BenchmarkConvertToArabic(b *testing.B) {
 				}
 			})
 		}
+	}
+}
+
+func valueOf(r byte) int {
+	switch r {
+	case 'I':
+		return 1
+	case 'V':
+		return 5
+	case 'X':
+		return 10
+	case 'L':
+		return 50
+	case 'C':
+		return 100
+	case 'D':
+		return 500
+	case 'M':
+		return 1000
+	default:
+		return 0
 	}
 }
